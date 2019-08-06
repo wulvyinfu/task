@@ -1,0 +1,121 @@
+<% include header.ejs %>
+<% include nav.ejs %>
+<div class="layui-main" style="padding: 15px;">
+    <h1> <%- data.title %></h1>
+
+    <div class="layui-text layui-row">
+        <div class="layui-col-md1">发布人：<%- data.author.username %></div>
+        <div>发布时间：<%- new Date(data.startTime).toLocaleString() %></div>
+    </div>
+    <fieldset class="layui-elem-field layui-field-title">
+        <legend>任务详情</legend>
+    </fieldset>
+    <div><%- data.content %></div>
+    <div>已接取人数：<%- data.receiver.length %>人 最高接取人数：<%- data.num %> 人 任务难度 <div id="rate"></div></div>
+    <% if(!data.finish &&  data.receiver.length  <  data.num && data.endTime > new Date()  ){ %>
+    <button id="btn" class="layui-btn layui-btn-normal"> 立即接取 </button>
+    <% }else{ %>
+    <button class="layui-btn layui-btn-normal layui-btn-disabled"> 不可接取 </button>
+    <% } %>
+    <fieldset class="layui-elem-field layui-field-title">
+        <legend>接取人</legend>
+    </fieldset>
+    <div>
+        <% for(var i = 0;i<data.receiver.length;i++){ %>
+            <div class="layui-card">用户名：<%- data.receiver[i].user.username  %></div>
+            <% if(data.receiver[i].swi){ %>
+                <div class="layui-card-body"> <%- data.receiver[i].msg %> </div>
+                <hr>
+            <% } %>
+            <% if(!data.receiver[i].swi && data.receiver[i].user._id == id || data.author._id == id && !data.receiver[i].reply ){ %>
+            <form class="layui-form">
+                <textarea id="rateArea<%-i%>" style="display: none;"></textarea>
+                <input type="text" name="index" hidden value="<%-i%>">
+                <button class="layui-btn" lay-submit lay-filter="ratearea<%-i%>">立即提交</button>
+            </form>
+            <% }else{ %>
+                <div style="min-height: 50px">回复： <%- data.receiver[i].msg && data.receiver[i].reply %> </div>
+                <hr>
+            <% } %>
+            <% if(!data.finish &&  data.author._id == id){ %>
+                <button class="layui-btn layui-btn-normal isok" >确定完成</button>
+            <% } %>
+        <% } %>
+    </div>
+    <div>
+
+    </div>
+</div>
+<script>
+    layui.use(['rate' ,'layer','layedit','form'],function () {
+        var rate = layui.rate;
+        var $ = layui.$;
+        var layedit = layui.layedit;
+        var form = layui.form;
+
+
+        rate.render({
+            elem:'#rate',
+            value:  '<%- data.difficulty %>',
+            readonly:true,
+        })
+        $('#btn').on('click',function () {
+            $.ajax({
+                url:'/task/receive',
+                method:'post',
+                data: {'task_id':'<%= data._id %>'},
+                success:function (data) {
+                   layer.alert(data.msg)
+                }
+            })
+        })
+        <% for(var i=0;i<data.receiver.length;i++){ %>
+        layedit.build('rateArea<%-i%>');
+
+        var edit<%-i%> = layedit.build('rateArea<%-i%>',{
+            uploadImage : {url:'/api/upload',type:'post'}//图片上传位置
+        });
+        console.log(edit<%-i%>)
+        form.on('submit(ratearea<%-i%>)',function (data) {
+            var da = data.field;
+            var _id = location.pathname.split('details')[1];
+            da.content = layedit.getContent(edit<%-i%>);
+            // console.log(da);
+            $.ajax({
+                url:'/msg<%-data.author._id == id ? '/author':'' %>',
+                method : 'post',
+                data :{
+                    task_id:_id,
+                    index:da.index,
+                    content: da.content
+                }
+                 ,
+                success : function (data) {
+                    console.log(data);
+                    if(data.code===0){
+                        layer.alert('发布成功',function () {
+                            location.reload();
+                        })
+                    }
+                }
+            })
+            return false;
+
+        })
+
+        <% } %>
+        $('.isok').on('click',function () {
+            var index = $(this).index('.isok');
+            $.ajax({
+                url: '/task/finish/' + location.pathname.split('details')[1],
+                method: 'post',
+                data: {'index': index},
+                success : function (data) {
+                    layer.alert(data.msg)
+                }
+            })
+        })
+    })
+</script>
+</body>
+</html>

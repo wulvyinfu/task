@@ -1,0 +1,56 @@
+
+<div class="layui-layout layui-layout-admin">
+    <div class="layui-header">
+        <div class="layui-logo">302</div>
+        <!-- 头部区域（可配合layui已有的水平导航） -->
+        <ul class="layui-nav layui-layout-left">
+            <li class="layui-nav-item"><a href="/">首页</a></li>
+        </ul>
+        <ul class="layui-nav layui-layout-right">
+            <li class="layui-nav-item">
+                <a href="javascript:;">
+                    <img src="http://t.cn/RCzsdCq" class="layui-nav-img">
+                    <%=  username %>
+                </a>
+            </li>
+            <li class="layui-nav-item"><a href="/">返回首页</a></li>
+        </ul>
+    </div>
+
+    <div class="layui-side layui-bg-black">
+        <div class="layui-side-scroll">
+            <!-- 左侧导航区域（可配合layui已有的垂直导航） -->
+            <ul class="layui-nav layui-nav-tree"  lay-filter="test">
+                <li class="layui-nav-item layui-nav-itemed">
+                    <a class="" href="javascript:;">任务中心</a>
+                    <dl class="layui-nav-child">
+                        <dd class="<% if(title=='任务'){ %><%= 'layui-this' %><% } %>"><a href="/mytask">我的任务</a></dd>
+                        <dd class=" <% if(title == '发布'){ %><%= 'layui-this' %><% } %>" ><a href="/addtask">任务发布</a></dd>
+
+                    </dl>
+                </li>
+                <% if(level>=10){ %>
+                <li class="layui-nav-item layui-nav-itemed">
+                    <a class="" href="javascript:;">平台管理</a>
+                    <dl class="layui-nav-child">
+                            <dd class=" <% if(title=='用户管理'){ %><%= 'layui-this' %><% } %>"><a href="/admin/user">用户管理</a></dd>
+                            <dd class="<% if(title=='任务管理'){ %><%= 'layui-this' %><% } %>"><a href="/admin/edittask">任务管理</a></dd>
+                    </dl>
+                </li>
+                <% }%>
+
+            </ul>
+        </div>
+    </div>
+
+
+
+</div>
+<!--<script src="../src/layui.js"></script>-->
+<script>
+    //JavaScript代码区域
+    // layui.use('element', function(){
+    //     var element = layui.element;
+    //
+    // });
+</script>

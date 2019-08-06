@@ -1,0 +1,173 @@
+<%  include ../header.ejs %>
+<body class="layui-layout-body">
+<% include menu.ejs %>
+<div class="layui-layout layui-layout-admin">
+
+    <div class="layui-body">
+        <!-- 内容主体区域 -->
+        <div style="padding: 15px;">
+            <fieldset class="layui-elem-field layui-field-title">
+                <legend>用户管理</legend>
+                <table id="demo" lay-filter="demo"></table>
+            </fieldset>
+        </div>
+    </div>
+
+    <!--<div class="layui-footer">-->
+    <!--&lt;!&ndash; 底部固定区域 &ndash;&gt;-->
+    <!--© layui.com - 底部固定区域-->
+    <!--</div>-->
+</div>
+<script src="/layui/layui.js"></script>
+<script type="text/html" id="barDemo">
+    <a class="layui-btn layui-btn-xs" lay-event="relevel" >修改等级</a>
+    <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="del">删除用户</a>
+</script>
+
+<script>
+    //JavaScript代码区域
+    layui.use(['element','table','form'], function(){
+        var element = layui.element;
+        var form = layui.form;
+        var table = layui.table;
+
+
+
+        //数据渲染
+        table.render({
+            elem: '#demo'
+            ,url: '/admin/user' //数据接口
+            ,method:'post'
+            ,page: true //开启分页
+            ,cols: [[ //表头
+                {field: 'username', title: '用户名', width:80},
+                {field: 'level', title: '身份', width:120 ,templet:function(d){
+                        if (d.level == 999) {
+                            return '超级管理员';
+                        }else if(d.level > 1){
+                            return '管理员';
+                        }else if(d.level == 1){
+                            return '普通用户';
+                        }
+                    }},
+                {field: 'level', title: '工号', width:80},
+                {field: 'used', title: '账号是否可用',templet:function(d){
+                        // console.log(d);
+                        return `<input type="checkbox" name='used' value="${d._id}" lay-skin="switch" lay-filter="usedDemo" lay-text="可用|不可用" ${d.used ?  'checked':''} >`
+                    }, width:180},
+                {field: 'tool',title:'操作', width: 165, align:'center', toolbar: '#barDemo'},
+                // {field: 'a', title: '操作', width:80}
+            ]]
+        });
+
+        //管理员操作
+        table.on('tool(demo)',function (obj) {
+            //修改级别
+            if (obj.event == 'relevel') {
+                layer.prompt(function (value, index, elem) {
+
+                    // a = Number(value) ;
+                    // console.log(toString(a));
+                    if (Number(value)  != value){
+                        alert('请输入数字')
+                        return ;
+                    }
+
+                    layui.$.ajax({
+                        url: '/admin/user/relevel',
+                        method : 'post',
+                        data: {
+                            user_id : obj.data._id,
+                            level : value
+                        },
+                        success:function (data) {
+                            console.log(data);
+                            data.code === 0 && layer.tips(data.msg,obj.othis)
+                            // console.log(data);
+                        }
+                    })
+
+                    layer.close(index)
+                });
+            }
+            // 删除用户
+            if (obj.event == 'del') {
+                layer.alert('确定删除此用户？',function () {
+
+                    // console.log(thisUrl);
+                    layui.$.ajax({
+                        url:'/admin/user/del',
+                        method : 'post',
+                        data: {
+                            user_id : obj.data._id
+                        },
+                        success:function (data) {
+                            console.log(data);
+                            // data.code === 0 && layer.tips(data.msg,obj.othis)
+                            if (data.code===0){
+                                layer.alert('删除成功');
+                                location.reload();
+                            }else{
+                                layer.alert('发生错误')
+                            }
+                            // console.log(data);
+                        }
+                    })
+                })
+                // var thisUrl = '/admin/user/'+ obj.event;
+
+
+            }
+
+        })
+
+
+        //更改可用状态
+        form.on('switch(usedDemo)',function (obj) {
+            console.log( this.value,obj.elem.checked)
+            layui.$.ajax({
+                url : '/admin/user/reused',
+                method: 'post',
+                    data:{
+                        'user_id' : this.value,
+                        'used' : obj.elem.checked
+                },
+                success:function (data) {
+                    // console.log(obj.othis);
+                    data.code === 0 && layer.tips(data.msg, obj.othis)
+                    data.code === 1 && layer.alert(data.msg, function(){
+                        window.location.reload()
+                    })
+                }
+            })
+        })
+
+        //第一个实例
+
+        // table.on('tool(test)', function(obj){ //注：tool 是工具条事件名，test 是 table 原始容器的属性 lay-filter="对应的值"
+        //     var data = obj.data //获得当前行数据
+        //         ,layEvent = obj.event; //获得 lay-event 对应的值
+        //     if(layEvent === 'edit'){
+        //         layer.msg('编辑操作');
+        //     } else if(layEvent === 'del'){
+        //         layer.confirm('真的删除行么', function(index){
+        //             obj.del()//删除对应行（tr）的DOM结构
+        //             layer.close(index);
+        //             console.log(obj);
+        //             var _data = obj.data;
+        //             //向服务端发送删除指令
+        //             $.ajax({
+        //                 url:"/admin/user/del",
+        //                 method: "post",
+        //                 data:_data
+        //                 // success:{
+        //                 //
+        //                 // }
+        //             })
+        //         });
+        //     }
+        // });
+    });
+</script>
+</body>
+</html>

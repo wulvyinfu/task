@@ -1,0 +1,74 @@
+<% include header.ejs %>
+<body>
+<% include nav.ejs %>
+<div id="showtask" style="padding: 10px">
+    <button class="layui-btn layui-btn-normal" data-event="all">全部任务</button>
+    <button class="layui-btn layui-btn-normal" data-event="can">可以接取</button>
+    <button class="layui-btn layui-btn-normal" data-event="notcan">不可接取</button>
+    <div style="float: right;">
+        <button class="layui-btn layui-btn-normal" data-event="my">我的发布</button>
+        <button class="layui-btn layui-btn-normal" data-event="ing">已接取的任务</button>
+        <button class="layui-btn layui-btn-normal" data-event="fin">已完成的任务</button>
+    </div>
+</div>
+
+    <table id="task" lay-filter="task"></table>
+<script type="text/html" id="taskbar">
+    <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="details">任务详情</a>
+</script>
+<script>
+    //注意：导航 依赖 element 模块，否则无法进行功能性操作
+    layui.use(['element','table','util'], function(){
+        var element = layui.element;
+        var table = layui.table;
+        var util = layui.util;
+        var $ = layui.$;
+        table.render({
+            elem: '#task',
+            url: '/task/all',
+            method : 'post',
+            page:true,
+            cols:[
+                [
+                    {field:'title',title:'标题'},
+                    {field:'author',title:'作者',templet:function (data) {
+                            // console.log(data);
+                            return data.author? data.author.username:'';
+                        }},
+                    {field:'startTime',title:'发布时间',templet:function (data) {
+                            return util.timeAgo(data.startTime)
+                        }},
+                    {field:'endTime',title:'截止时间',templet: function (data) {
+                            return util.toDateString(data.endTime)
+                        }},
+                    {field: 'tool',title:'操作', width: 165, align:'center', toolbar: '#taskbar'},
+                ]
+            ]
+        });
+        table.on('tool(task)',function (obj) {
+            if (obj.event != 'details') return;
+            location.href= '/api/task/details'+obj.data._id;
+            // $.ajax({
+            //     url: '/api/task/details'+obj.data._id,
+            //     method: 'get',
+            //     data: {
+            //         'data':obj.data,
+            //     },
+            //     success:function(data){
+            //         console.log(data);
+            //     }
+            // })
+        })
+        $('#showtask .layui-btn').on('click',function (obj) {
+            // console.log(obj);
+            table.reload('task',{
+                url: '/api/task/' + this.dataset.event,
+                method:'post'
+            })
+            // this.dataset.event
+        })
+    });
+
+</script>
+</body>
+</html>

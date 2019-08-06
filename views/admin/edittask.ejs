@@ -1,0 +1,64 @@
+<% include ../header.ejs %>
+<body>
+    <% include ./menu.ejs %>
+    <div class="layui-layout layui-layout-admin">
+        <div class="layui-body">
+            <!-- 内容主体区域 -->
+            <div style="padding: 15px;">
+                <fieldset class="layui-elem-field layui-field-title">
+                    <legend>用户管理</legend>
+                    <table id="task" lay-filter="task"></table>
+                </fieldset>
+            </div>
+        </div>
+    </div>
+    <script type="text/html" id="del">
+        <a class="layui-btn layui-btn-danger layui-btn-xs" lay-event="deltask">删除任务</a>
+    </script>
+    <script>
+        layui.use(['element','table','form'], function(){
+            var table = layui.table;
+            var element = layui.element;
+            var $ = layui.$;
+            var form = layui.form;
+
+            table.render({
+                elem : '#task',
+                url : '/admin/edittask',
+                method : 'post',
+                cols: [
+                    [
+                        {field: 'title', title: '标题'},
+                        {field: 'author', title: '作者',templet : function (data) {
+                                return data.author.username;
+                            }},
+                        {field: 'startTime', title: '发布时间',templet : function (data) {
+                                return new Date(data.startTime).toLocaleString();
+                            }},
+                        {field: 'endTime', title: '截止时间'},
+                        {field: 'tool',title:'操作', width: 165, align:'center', toolbar: '#del'},
+                    ]
+                ]
+            });
+
+            table.on('tool(task)',function (obj) {
+                // console.log(obj);
+                layer.confirm('确定删除？',function () {
+                    $.ajax({
+                        url : '/admin/deltask',
+                        method: 'post',
+                        data : {'task_id':obj.data._id},
+                        success: function(data){
+                            // console.log(data);
+                            layer.alert(data.msg,function () {
+                                location.reload()
+                            })
+                        }
+                    })
+                })
+
+            })
+        })
+    </script>
+</body>
+</html>

@@ -1,0 +1,117 @@
+<% include ../header.ejs %>
+<body>
+<% include ./menu.ejs %>
+<% if(used){ %>
+<form class="layui-form">
+    <div class="layui-layout layui-layout-admin">
+        <div class="layui-body">
+            <!-- 内容主体区域 -->
+
+            <fieldset class="layui-elem-field layui-field-title">
+                <legend>任务发布</legend>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">标题</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="title" lay-verify="title" autocomplete="off" placeholder="请输入标题" class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">奖励</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="award" lay-verify="title" autocomplete="off" placeholder="请输入奖励详情" class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">难度</label>
+                    <div class="" id="test1"></div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">人数</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="num" lay-verify="title" autocomplete="off" placeholder="请输入标题" class="layui-input">
+                    </div>
+
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">截止时间</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="endTime" class="layui-input" id="da" placeholder="yyyy-MM-dd">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">内容</label>
+                    <div class="layui-input-block">
+                        <table id="demo" lay-filter="demo"></table>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">内容</label>
+                    <div class="layui-input-block">
+                        <button class="layui-btn" lay-submit lay-filter="formDemo">立即提交</button>
+                    </div>
+                </div>
+            </fieldset>
+        </div>
+    </div>
+</form>
+    <textarea id="demo" style="display: none;"></textarea>
+    <script>
+        layui.use(['layedit','laydate','rate','form'], function(){
+            var layedit = layui.layedit;
+            var laydate = layui.laydate;
+            var rate = layui.rate;
+            var form = layui.form;
+            var $ = layui.$;
+
+            var score ;
+
+
+            laydate.render({
+                elem: '#da'
+            });
+            //基础效果
+            rate.render({
+                elem: '#test1',
+                choose:function (value) {
+                    score = value;
+                }
+            })
+
+            var edit = layedit.build('demo',{
+                uploadImage : {url:'/api/upload',type:'post'}//图片上传位置
+            }); //建立编辑器
+
+            //提交的所有数据
+            form.on('submit(formDemo)',function (data) {
+                // layer.msg(JSON.stringify(data.field));
+                var da = data.field;
+                da.startTime = new Date();
+                da.difficulty = score;
+                da.content = layedit.getContent(edit);
+                console.log(da);
+                $.ajax({
+                    url:'/addtask',
+                    method : 'post',
+                    data : da ,
+                    success : function (data) {
+                        if(data.code===0){
+                            layer.alert('发布成功',function () {
+                                // location.reload();
+                            })
+                        }else if(data.code === 1){
+                            layer.alert(data.msg)
+                        }
+                    }
+                })
+                return false;
+            })
+        });
+    </script>
+<% }else { %>
+    <h2 style="width: 300px;margin: 50px auto;">
+        用户不可用请联系管理员！！
+    </h2>
+
+<% } %>
+</body>
+</html>
